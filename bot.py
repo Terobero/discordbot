@@ -2,9 +2,14 @@ from datetime import datetime
 from discord.ext import commands
 from json import load
 from os import listdir
+from pymongo import MongoClient
 
 
 bot = commands.Bot(command_prefix="/")
+with open("api.json", "r") as f:
+    f = load(f)
+    cluster = MongoClient(f.get("mongodb"))
+    users = cluster["discord"]["users"]
 
 
 @bot.event
@@ -20,6 +25,14 @@ async def on_ready():
 
 
 @bot.event
+async def on_member_join(member):
+    if not users.find_one({"name": str(member)}):
+        users.insert_one({"name": str(member), "level": 1, "xp": 0, "points": 0, "last_time": str(datetime.now())})
+    else:
+        users.update_one({"name": str(member)}, {"$set": {"level": 1, "xp": 0, "points": 0, "last_time": str(datetime.now())}})
+
+
+@bot.event
 async def on_message(message):
     if message.author == bot.user:
         return
@@ -30,6 +43,7 @@ async def on_message(message):
     elif "sedat" in message.content.lower():
         await message.channel.send("SEDAAAAAT")
     else:
+        users.update_one({"name": str(message.author)}, {"$inc": {"xp": 5}})
         await bot.process_commands(message)
 
 

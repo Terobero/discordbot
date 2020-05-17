@@ -5,11 +5,11 @@ from bson.binary import Binary
 from discord import Client, Embed
 from discord.channel import DMChannel
 from discord.ext import commands
-from json import load
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
+from json import load
 from pymongo import MongoClient
 
 
@@ -28,7 +28,7 @@ class Google(commands.Cog):
     async def check_creds(self, ctx: commands.Context):
         creds = None
         user = str(ctx.author)
-        if self.users.find_one({"name": user}):
+        if "creds" in self.users.find_one({"name": user}).keys():
             creds = pickle.loads(Binary(self.users.find_one({"name": user})["creds"]))
 
         if not creds or not creds.valid:
