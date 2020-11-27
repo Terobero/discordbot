@@ -35,11 +35,11 @@ class Google(commands.Cog):
             if creds and creds.expired and creds.refresh_token:
                 creds.refresh(Request())
                 self.users.update_one({"name": user}, {"$set": {"creds": Binary(pickle.dumps(creds))}})
-                return None
+                return creds
             else:
                 flow = InstalledAppFlow.from_client_secrets_file(
                     "google_credentials.json", scopes=self.scopes, redirect_uri="urn:ietf:wg:oauth:2.0:oob")
-                auth_url, _ = flow.authorization_url(prompt='consent')
+                auth_url, _ = flow.authorization_url(access_type="offline", prompt="consent")
 
                 await ctx.author.send(f"{self.shortener.shorten_urls([auth_url])[0]}"
                                       f"\nPlease enter your token by `/login <token>`")
@@ -125,6 +125,10 @@ class Google(commands.Cog):
         except HttpError:
             self.users.delete_one({"name": str(ctx.author)})
             await self.check_creds(ctx)
+            return
+
+        if result == {"resultSizeEstimate": 0}:
+            await ctx.send("Your mailbox is empty.")
             return
 
         embed = Embed(title=f"{ctx.author.display_name}'s Inbox", color=0xd93025)

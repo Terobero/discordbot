@@ -1,5 +1,7 @@
 {
-  "discord": ""
+  "discord": "",
   "mongodb": "",
-  "bitly": ""
+  "bitly": "",
+  "reddit_id": "",
+  "reddit_secret": ""
 }

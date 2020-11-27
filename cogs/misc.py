@@ -1,5 +1,6 @@
-from discord import Client, Member, Role
+from discord import Client, Embed, Member
 from discord.ext import commands
+from re import findall
 
 
 class Misc(commands.Cog):
@@ -28,15 +29,24 @@ class Misc(commands.Cog):
 
     @commands.command()
     async def poll(self, ctx: commands.Context, *, string: str):
-        if string[0] is not "\"" or string[-1] is not "\"":
-            await ctx.send("Wrong poll format!")
-            return
-
-        string = ' '.join(string[1:-1].split()).split("\" \"")
-        if len(string) == 1:
-            pass
+        matches = findall('".+?"', string)
+        if len(matches) < 3:
+            embed = Embed(title=f"{string}?", color=0xff00ff)
+            message = await ctx.send(embed=embed)
+            await message.add_reaction("<:no:647940735479578624>")
+            await message.add_reaction("<:yes:712680909559562270>")
         else:
-            pass
+            embed = Embed(title=f"{matches[0][1:-1]}?", color=0xff00ff)
+            embed_txt = ""
+            emoji_letters = ["🇦", "🇧", "🇨", "🇩", "🇪", "🇫", "🇬", "🇭", "🇮", "🇯"]
+            for i, match in enumerate(matches[1:]):
+                match = match[1:-1]
+                embed_txt += f"{emoji_letters[i]} {match}\n\n"
+
+            embed.add_field(name="\u200b", value=embed_txt[:-1])
+            message = await ctx.send(embed=embed)
+            for i in range(len(matches)-1):
+                await message.add_reaction(emoji_letters[i])
 
 
 def setup(client: Client):
